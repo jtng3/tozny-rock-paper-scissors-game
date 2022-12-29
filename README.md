@@ -65,10 +65,10 @@ sequenceDiagram
 
 ### Process:
 1. Alicia and Bruce use their respective Tozny clients to encrypt their game moves.
-2. Alicia and Bruce use the client.share function to share their encrypted game moves with Judge Clarence, using his client ID.
+2. Alicia and Bruce use the `client.share()` function to share their encrypted game moves with Judge Clarence, using his client ID.
 3. Judge Clarence uses his Tozny client to read the encrypted game moves that have been shared with him.
 4. Judge Clarence determines the winner of the round and writes the result of the game to the database, encrypted using his credentials.
-5. Judge Clarence shares the result of the game with both Alicia and Bruce by using the client.share function with their client IDs.
+5. Judge Clarence shares the result of the game with both Alicia and Bruce by using the `client.share()` function with their client IDs.
 6. Alicia and Bruce use their Tozny clients to read the shared result of the game from the database.
 
 ## Technical Details:
@@ -97,10 +97,10 @@ An encrypted version of the player's move, including the player's client ID.
 
 #### Algorithm
 
-1. Load the Tozny client credentials from the file specified by tozny_client_credentials_filepath.
+1. Load the Tozny client credentials from the file specified by `tozny_client_credentials_filepath`.
 2. Initialize the Tozny client with the client credentials.
 3. Encrypt the player's move.
-4. Share the encrypted move along with the player's client ID with Judge Clarence using the client.share function and Judge Clarence's client ID.
+4. Share the encrypted move along with the player's client ID with Judge Clarence using the `client.share()` function and Judge Clarence's client ID.
 Note: The client ID of Judge Clarence will be hardcoded in the program, but it may be also available as a modifiable argument for flexibility.
 
 ### Program 2: winner.py
@@ -149,7 +149,7 @@ An encrypted version of the winner of the round
 4. Decrypt the moves using the Judge's private key.
 5. Determine the winner of the round based on the moves.
 6. Encrypt the result of the game using Judge Clarence's credentials.
-7. Share the encrypted result of the game with both players using the client.share function and the player's client IDs, which are included in the bundled moves.
+7. Share the encrypted result of the game with both players using the `client.share()` function and the player's client IDs, which are included in the bundled moves.
 
 #### Example
 ```
