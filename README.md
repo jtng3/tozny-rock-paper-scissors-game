@@ -3,7 +3,7 @@
 ## Overview:
 The Rock Paper Scissors game is a well-known simple game played by two players. Each player chooses one out of three possible moves: rock, paper, or scissors. The winner is determined based on a predetermined set of rules: rock beats scissors, paper beats rock, and scissor beats paper. 
 
-This design document outlines a version of the Rock-Paper-Scissors game that involves three parties: Alicia, Bruce, and Judge Clarence, who decides the winner. This game will be implemented using the Tozny SDK, and the constraints are as follows: 1.) only Judge Clarence can decrypt the game moves sent in by Alicia and Bruce, and 2.) the result of the game can be decrypted by all three parties.
+This design document outlines a version of the Rock Paper Scissors game that involves three parties: Alicia, Bruce, and Judge Clarence, who decides the winner. This game will be implemented using the Tozny SDK, and the constraints are as follows: 1.) only Judge Clarence can decrypt the game moves sent in by Alicia and Bruce, and 2.) the result of the game can be decrypted by all three parties.
 
 ## User Interface:
 This version of the Rock Paper Scissors game will be played using a command-line interface (CLI). Players will submit their moves using the following command:
