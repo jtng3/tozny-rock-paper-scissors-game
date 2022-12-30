@@ -1,4 +1,4 @@
-# Title: Rock Paper Scissors Game README/Design Document
+# Title: Rock Paper Scissors Game README/Design Document (WIP)
 
 ## Overview:
 The Rock Paper Scissors game is a well-known simple game played by two players. Each player chooses one out of three possible moves: rock, paper, or scissors. The winner is determined based on a predetermined set of rules: rock beats scissors, paper beats rock, and scissor beats paper. 
@@ -93,7 +93,7 @@ This program will be used by the players to submit their game moves.
 
 `play.py` will share the following records with Judge Clarence:
 
-An encrypted version of the player's move, including the player's client ID. 
+An encrypted version of the player's move, including the player's client ID. The record's metadata will include the record type (RPS Game Move), and the round number.  
 
 #### Algorithm
 
@@ -125,8 +125,8 @@ The winner of the specified round (either the name of the player, or "tie" if it
 
 1. Load the Tozny client credentials from the file specified by `tozny_client_credentials_filepath`.
 2. Initialize the Tozny client with the client credentials.
-3. Read the encrypted secret key and the encrypted winner for the specified round from the Tozny database.
-4. Read the encrypted result of the game that has been shared with the player from the Tozny database.
+3. Query for the result of the game that has been shared with the player from the Tozny database using the record type `rps-game-result` and the round number.
+4. Read the encrypted result of the game.
 5. Decrypt the result of the game using the player's private key.
 6. Print the winner to the console.
 
@@ -142,21 +142,24 @@ This program will be used by Judge Clarence to read the moves for a round, deter
 #### Outputs
 `judge.py` will write the following record to the Tozny database and share it with both players:
 
-An encrypted version of the winner of the round
+An encrypted version of the winner of the round. The record's metadata will include the record type (`rps-game-result`), and the round number.  
 
 #### Algorithm
 1. Load the Tozny client credentials from the file specified by `tozny_client_credentials_filepath`.
 2. Initialize the Tozny client with the client credentials.
-3. Read the encrypted moves for the specified round that have been shared with Judge Clarence.
-4. Decrypt the moves using the Judge's private key.
-5. Determine the winner of the round based on the moves.
-6. Encrypt the result of the game using Judge Clarence's credentials.
-7. Share the encrypted result of the game with both players using the `client.share()` function and the players' client IDs, which are included in the bundled moves.
+4. Query the Tozny database for the encrypted moves that have been shared with Judge Clarenceusing the specified round number and the record type `rps-game move`.
+5. Decrypt the moves using the Judge's private key.
+6. Determine the winner of the round based on the moves.
+7. Encrypt the result of the game using Judge Clarence's credentials.
+8. Share the encrypted result of the game with both players using the `client.share()` function and the players' client IDs, which are included in the bundled moves.
 
 #### Example
 ```
 $ python3 judge.py round=1 tozny_client_credentials_filepath=./clarence_creds.json
 Round “1” Judged!
 ```
+
+## Questions to ponder
+What if when playing the specified round number entered in the CLI command already exists? Should the game moves be overwritten?
 
 
