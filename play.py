@@ -152,7 +152,7 @@ def main():
     try:
         record = client.write(record_type, data, metadata)
     # handle any potential errors
-    except (e3db.ClientError, e3db.ServerError) as e:
+    except Exception as e:
         print('Error:', e)
         exit(1)
 
@@ -162,6 +162,7 @@ def main():
     try:
         client.share('rps-move', judge_client_id)
     # handle any potential errors
-    except (e3db.ClientError, e3db.ServerError) as e:
+    except Exception as e:
         print('Error:', e)
         exit(1)
+
