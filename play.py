@@ -150,12 +150,8 @@ def main():
     }
 
     # check if there is already a move submitted for this round
-    existing_record_query = Search().match(
-        type='rps-move',
-        plain={
-            'round': args.round
-        }
-    )
+    existing_record_query = Search().match(condition="AND", record_types=["rps-move"], values=["1"])
+
     existing_record = client.search(existing_record_query)
 
     if len(existing_record) > 0:
