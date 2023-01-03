@@ -40,12 +40,14 @@ def valid_round(round):
     Raises:
         argparse.ArgumentTypeError: if the round number is not valid.
     """
+    # convert the round argument to an integer
+    round = int(round)
     # check if the round number is a positive integer
     if round <= 0 or not isinstance(round, int):
         # raise an ArgumentTypeError if the round number is not valid
         raise argparse.ArgumentTypeError('Invalid round number: %s' % round)
     # return the round number if it is valid
-    return round
+    return str(round)
 
 
 def valid_file_path(file_path):
@@ -97,23 +99,24 @@ def main():
     parser = argparse.ArgumentParser()
 
     # add the round number, player name, and move arguments
-    parser.add_argument('round', type=valid_round, required=True,
+    parser.add_argument('round', type=valid_round,
                         help='the round number')
-    parser.add_argument('name', type=str, required=True,
+    parser.add_argument('name', type=str,
                         help='the player name')
-    parser.add_argument('move', type=valid_move, required=True,
+    parser.add_argument('move', type=valid_move,
                         help='the player move')
-    parser.add_argument('tozny_client_credentials_filepath', type=valid_file_path, required=True,
+    parser.add_argument('tozny_client_credentials_filepath', type=valid_file_path,
                         help='the file path to the player\'s Tozny client credentials')
 
     # add an optional client ID argument
-    parser.add_argument('--client_id', type=valid_client_id help='the client ID of Judge Clarence')
+    parser.add_argument('--judge_id', type=valid_client_id, help='the client ID of Judge Clarence')
 
     # parse the command line arguments
     args = parser.parse_args()
 
+
     # use the hardcoded client ID if the optional argument was not provided
-    judge_client_id = args.client_id or 'hardcoded_client_id'
+    judge_client_id = args.judge_id or 'hardcoded_judge_client_id'
 
     # try to load the Tozny client credentials from the file
     try:
@@ -150,18 +153,19 @@ def main():
     }
 
     # check if there is already a move submitted for this round
-    existing_record_query = Search().match(condition="AND", record_types=["rps-move"], values=["1"])
+    existing_record_query = Search().match(condition="AND", record_types=["rps-move"], values=[args.round])
 
     existing_record = client.search(existing_record_query)
 
+
     if len(existing_record) > 0:
         # there is already a move submitted for this round
-        print('A move has already been submitted for round %d' % args.round)
+        print('A move has already been submitted for round %s' % args.round)
     else:
         # try to write the record onto the Tozny database
         try:
             record = client.write(record_type, data, metadata)
-            print('Successfully saved move for round %d' % args.round)
+            print('Successfully saved move for round %s' % args.round)
             print('Wrote record {0}'.format(record.meta.record_id))
         # handle any potential errors
         except Exception as e:
@@ -177,3 +181,5 @@ def main():
             exit(1)
 
 
+if __name__ == '__main__':
+    main()

@@ -159,7 +159,7 @@ $ python3 judge.py round=1 tozny_client_credentials_filepath=./clarence_creds.js
 Round “1” Judged!
 ```
 
-## Questions to ponder
-What if when playing the specified round number entered in the CLI command already exists? Should the game moves be overwritten?
-
+## Questions to consider
+What should happen if a move has already been submitted for the specified round number entered in the CLI command? Should the game moves be overwritten, or should an error message be displayed? (This can be handled by querying the database for an existing move for that round before writing a new move to the database.)
+What if a player other than Alice or Bruce submits a move for a round that Alice and Bruce are playing?
 
