@@ -43,10 +43,10 @@ def valid_round(round):
     # convert the round argument to an integer
     round = int(round)
     # check if the round number is a positive integer
-    if round <= 0 or not isinstance(round, int):
+    if round <= 0:
         # raise an ArgumentTypeError if the round number is not valid
         raise argparse.ArgumentTypeError('Invalid round number: %s' % round)
-    # return the round number if it is valid
+    # return the round number if it is valid as a string
     return str(round)
 
 
