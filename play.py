@@ -1,104 +1,15 @@
 import argparse
 import json
-import os
 import e3db
-import uuid
 from e3db.types import Search
-
-
-def valid_move(move):
-    """
-    Check if the move is a valid move.
-
-    Args:
-        move (str): the move to be checked.
-
-    Returns:
-        str: the move if it is valid.
-
-    Raises:
-        argparse.ArgumentTypeError: if the move is not valid.
-    """
-    # check if the move is one of the valid moves
-    if move not in ['rock', 'paper', 'scissors']:
-        # raise an ArgumentTypeError if the move is not valid
-        raise argparse.ArgumentTypeError('Invalid move: %s' % move)
-    # return the move if it is valid
-    return move
-
-
-def valid_round(round):
-    """
-    Check if the round number is a valid round number.
-
-    Args:
-        round (int): the round number to be checked.
-
-    Returns:
-        int: the round number if it is valid.
-
-    Raises:
-        argparse.ArgumentTypeError: if the round number is not valid.
-    """
-    # convert the round argument to an integer
-    round = int(round)
-    # check if the round number is a positive integer
-    if round <= 0 or not isinstance(round, int):
-        # raise an ArgumentTypeError if the round number is not valid
-        raise argparse.ArgumentTypeError('Invalid round number: %s' % round)
-    # return the round number if it is valid
-    return str(round)
-
-
-def valid_file_path(file_path):
-    """
-    Check if the file path is a valid file path.
-
-    Args:
-        file_path (str): the file path to be checked.
-
-    Returns:
-        str: the file path if it is valid.
-
-    Raises:
-        argparse.ArgumentTypeError: if the file path is not valid.
-    """
-    # check if the file path exists and is a file
-    if not os.path.exists(file_path) or not os.path.isfile(file_path):
-        # raise an ArgumentTypeError if the file path is not valid
-        raise argparse.ArgumentTypeError('Invalid file path: %s' % file_path)
-    # return the file path if it is valid
-    return file_path
-
-
-def valid_client_id(client_id):
-    """
-    Check if the client ID is a valid client ID.
-    
-    Args:
-        client_id (str): the client ID to be checked.
-        
-    Returns:
-        str: the client ID if it is valid.
-        
-    Raises:
-        argparse.ArgumentTypeError: if the client ID is not valid.
-    """
-    try:
-        # parse the client ID and check if it is a valid UUID
-        uuid.UUID(client_id)
-    except ValueError:
-        # raise an ArgumentTypeError if the client ID is not valid
-        raise argparse.ArgumentTypeError('Invalid client ID: %s' % client_id)
-    # return the client ID if it is valid
-    return client_id
+from utils import valid_round, valid_move, valid_file_path, valid_client_id
 
 
 def main():
     # create an argument parser
     parser = argparse.ArgumentParser()
 
-    # add the round number, player name, and move arguments
+    # add the round number, player name, move, and client credentials filepath arguments
     parser.add_argument('round', type=valid_round,
                         help='the round number')
     parser.add_argument('name', type=str,
@@ -108,14 +19,14 @@ def main():
     parser.add_argument('tozny_client_credentials_filepath', type=valid_file_path,
                         help='the file path to the player\'s Tozny client credentials')
 
-    # add an optional client ID argument
-    parser.add_argument('--judge_id', type=valid_client_id, help='the client ID of Judge Clarence')
+    # add an optional judge client ID argument
+    parser.add_argument('--judge_id', type=valid_client_id,
+                        help='the client ID of Judge Clarence')
 
     # parse the command line arguments
     args = parser.parse_args()
 
-
-    # use the hardcoded client ID if the optional argument was not provided
+    # use the hardcoded judge client ID if the optional argument was not provided
     judge_client_id = args.judge_id or 'hardcoded_judge_client_id'
 
     # try to load the Tozny client credentials from the file
@@ -124,7 +35,7 @@ def main():
             client_info = json.load(f)
     # handle any potential errors
     except (IOError, json.JSONDecodeError) as e:
-        print('Error:', e)
+        print('Error loading client credentials from file:', e)
         exit(1)
 
     # pass credientials into the configuration constructor
@@ -136,7 +47,7 @@ def main():
         client_info["private_key"]
     )
 
-    # Pass the configuration when building a new client instance.
+    # pass the configuration when building a new client instance.
     client = e3db.Client(config())
 
     # create record to be encypted and stored onto the Tozny database
@@ -153,14 +64,23 @@ def main():
     }
 
     # check if there is already a move submitted for this round
-    existing_record_query = Search().match(condition="AND", record_types=["rps-move"], values=[args.round])
+    try:
+        existing_records_query = Search().match(condition="AND", record_types=[
+        "rps-move"], values=[args.round])
+    except Exception as e:
+        print("Error creating existing records query:", e)
+        exit(1)
 
-    existing_record = client.search(existing_record_query)
+    try:
+        existing_records = client.search(existing_records_query)
+    except Exception as e:
+        print("Error searching for existing record:", e)
+        exit(1)
 
-
-    if len(existing_record) > 0:
+    if len(existing_records) > 0:
         # there is already a move submitted for this round
-        print('A move has already been submitted for round %s' % args.round)
+        print('Error: A move has already been submitted for round %s' % args.round)
+        exit(1)
     else:
         # try to write the record onto the Tozny database
         try:
@@ -169,16 +89,16 @@ def main():
             print('Wrote record {0}'.format(record.meta.record_id))
         # handle any potential errors
         except Exception as e:
-            print('Error:', e)
+            print('Error writing record to database:', e)
             exit(1)
 
-        # try to share the records with the specified client ID
-        try:
-            client.share('rps-move', judge_client_id)
-        # handle any potential errors
-        except Exception as e:
-            print('Error:', e)
-            exit(1)
+    # try to share the records with the specified client ID
+    try:
+        client.share('rps-move', judge_client_id)
+    # handle any potential errors
+    except Exception as e:
+        print('Error sharing record with Judge:', e)
+        exit(1)
 
 
 if __name__ == '__main__':

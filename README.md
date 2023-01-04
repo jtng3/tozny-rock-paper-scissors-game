@@ -125,7 +125,7 @@ The winner of the specified round (either the name of the player, or "tie" if it
 
 1. Load the Tozny client credentials from the file specified by `tozny_client_credentials_filepath`.
 2. Initialize the Tozny client with the client credentials.
-3. Query for the result of the game that has been shared with the player from the Tozny database using the record type `rps-game-result` and the round number.
+3. Query for the result of the game that has been shared with the player from the Tozny database using the record type `rps-result` and the round number.
 4. Read the encrypted result of the game.
 5. Decrypt the result of the game using the player's private key.
 6. Print the winner to the console.
@@ -142,12 +142,12 @@ This program will be used by Judge Clarence to read the moves for a round, deter
 #### Outputs
 `judge.py` will write the following record to the Tozny database and share it with both players:
 
-An encrypted version of the winner of the round. The record's metadata will include the record type (`rps-game-result`), and the round number.  
+An encrypted version of the winner of the round. The record's metadata will include the record type (`rps-result`), and the round number.  
 
 #### Algorithm
 1. Load the Tozny client credentials from the file specified by `tozny_client_credentials_filepath`.
 2. Initialize the Tozny client with the client credentials.
-4. Query the Tozny database for the encrypted moves that have been shared with Judge Clarenceusing the specified round number and the record type `rps-game move`.
+4. Query the Tozny database for the encrypted moves that have been shared with Judge Clarenceusing the specified round number and the record type `rps-move`.
 5. Decrypt the moves using the Judge's private key.
 6. Determine the winner of the round based on the moves.
 7. Encrypt the result of the game using Judge Clarence's credentials.
