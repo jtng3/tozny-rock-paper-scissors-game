@@ -1,4 +1,4 @@
-# Title: Rock Paper Scissors Game README/Design Document (WIP)
+# Title: Rock Paper Scissors Game README
 
 ## Overview:
 The Rock Paper Scissors game is a well-known simple game played by two players. Each player chooses one out of three possible moves: rock, paper, or scissors. The winner is determined based on a predetermined set of rules: rock beats scissors, paper beats rock, and scissor beats paper. 
@@ -163,4 +163,5 @@ Round “1” Judged!
 
 ## Questions to consider
 What should happen if a move has already been submitted for the specified round number entered in the CLI command? Should the game moves be overwritten, or should an error message be displayed? (This is now handled by querying the database for an existing move for that round before writing a new move to the database.)
+
 What if a player other than Alice or Bruce submits a move for a round that Alice and Bruce are playing? 
