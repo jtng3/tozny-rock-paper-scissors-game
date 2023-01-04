@@ -79,7 +79,6 @@ def main():
     client_info = load_client_credentials(
         args.tozny_client_credentials_filepath)
 
-    # pass credientials into the configuration constructor
     # create a client instance
     client = create_client(client_info)
 
@@ -89,11 +88,10 @@ def main():
         # there is already a move submitted for this round
         raise RuntimeError(
             'A move has already been submitted for round %s' % args.round)
-            
 
     # write the record onto the Tozny database
     record = write_round_move(client, args.round, args.name,
-                          args.move, client_info["client_id"])
+                              args.move, client_info["client_id"])
     print('Successfully saved move for round %s' % args.round)
     print('Wrote record %s' % record.meta.record_id)
 
