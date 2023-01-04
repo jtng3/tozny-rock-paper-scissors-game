@@ -13,11 +13,12 @@ def valid_move(move):
         move (str): the move to be checked.
 
     Returns:
-        str: the move if it is valid.
+        str: the move if it is valid, always in lowercase
 
     Raises:
         argparse.ArgumentTypeError: if the move is not valid.
     """
+    move = move.lower() # convert move to lowercase
     # check if the move is one of the valid moves
     if move not in ['rock', 'paper', 'scissors']:
         # raise an ArgumentTypeError if the move is not valid
@@ -93,6 +94,53 @@ def valid_client_id(client_id):
     return client_id
 
 
+def parse_args():
+    """
+    Parse the command line arguments.
+
+    Returns:
+        An object containing the parsed arguments.
+    """
+    # create an argument parser
+    parser = argparse.ArgumentParser()
+
+    # add the round number and client credentials filepath arguments
+    parser.add_argument('round', type=valid_round,
+                        help='the round number')
+    parser.add_argument('tozny_client_credentials_filepath', type=valid_file_path,
+                        help='the file path to the player\'s Tozny client credentials')
+
+    # parse the command line arguments
+    return parser.parse_args()
+
+def parse_args_for_gameplay():
+    """
+    Parse the command line arguments for gameplay
+
+    Returns:
+        An object containing the parsed arguments.
+    """
+    # create an argument parser
+    parser = argparse.ArgumentParser()
+
+    # add the round number, player name, move, and client credentials filepath arguments
+    parser.add_argument('round', type=valid_round,
+                        help='the round number')
+    parser.add_argument('name', type=str,
+                        help='the player name')
+    parser.add_argument('move', type=valid_move,
+                        help='the player move')
+    parser.add_argument('tozny_client_credentials_filepath', type=valid_file_path,
+                        help='the file path to the player\'s Tozny client credentials')
+
+    # add an optional judge client ID argument
+    parser.add_argument('--judge_id', type=valid_client_id,
+                        help='the client ID of Judge Clarence')
+
+    # parse the command line arguments
+    return parser.parse_args()
+
+
 def load_client_credentials(filepath):
     """
     Load client credentials from a file.
@@ -137,3 +185,21 @@ def create_client(client_info):
     )
     # return a new Client instance using the Config instance
     return e3db.Client(config())
+
+def share_record_type(client, record_type, client_id):
+    """
+    Share a record type with the specified client.
+
+    Args:
+        client: A e3db.Client instance.
+        record_type: The type of the record to share.
+        client_id: The client ID of the recipient.
+
+    Raises:
+        RuntimeError: If there was an error sharing the record.
+    """
+    try:
+        # share the record with the specified client
+        client.share(record_type, client_id)
+    except Exception as e:
+        raise RuntimeError("Error sharing record with Judge: %s" % e)

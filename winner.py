@@ -1,26 +1,5 @@
-import argparse
 from e3db.types import Search
-from utils import valid_round, valid_file_path, load_client_credentials, create_client
-
-
-def parse_args():
-    """
-    Parse the command line arguments.
-
-    Returns:
-        An object containing the parsed arguments.
-    """
-    # create an argument parser
-    parser = argparse.ArgumentParser()
-
-    # add the round number and client credentials filepath arguments
-    parser.add_argument('round', type=valid_round,
-                        help='the round number')
-    parser.add_argument('tozny_client_credentials_filepath', type=valid_file_path,
-                        help='the file path to the player\'s Tozny client credentials')
-
-    # parse the command line arguments
-    return parser.parse_args()
+from utils import parse_args, load_client_credentials, create_client
 
 
 def get_game_result(client, round_number):
@@ -74,13 +53,13 @@ def main():
     # get the game result for the given round
     try:
         game_result = get_game_result(client, args.round)
-    except RuntimeError as e:
+    except Exception as e:
+        # handle the exception here
         print(e)
         exit(1)
 
-    # print the game result
-    print('Game result is:')
-    print(game_result.data)
+    # Output round and winner information
+    print("Round {} Winner: {}".format(args.round, game_result.data['winner']))
 
 
 if __name__ == '__main__':
