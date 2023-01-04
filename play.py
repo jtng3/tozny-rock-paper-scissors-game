@@ -1,11 +1,16 @@
 import argparse
 import json
-import e3db
 from e3db.types import Search
-from utils import valid_round, valid_move, valid_file_path, valid_client_id
+from utils import valid_round, valid_move, valid_file_path, valid_client_id, load_client_credentials, create_client
 
 
-def main():
+def parse_args():
+    """
+    Parse the command line arguments.
+
+    Returns:
+        An object containing the parsed arguments.
+    """
     # create an argument parser
     parser = argparse.ArgumentParser()
 
@@ -24,81 +29,121 @@ def main():
                         help='the client ID of Judge Clarence')
 
     # parse the command line arguments
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    # use the hardcoded judge client ID if the optional argument was not provided
-    judge_client_id = args.judge_id or 'hardcoded_judge_client_id'
 
-    # try to load the Tozny client credentials from the file
+def get_existing_records(client, round_number):
+    """
+    Get any records that have already been submitted for the specified round number.
+
+    Args:
+        client: A e3db.Client instance.
+        round_number: The round number to search for.
+
+    Returns:
+        A list of e3db.Record objects.
+
+    Raises:
+        RuntimeError: If there was an error creating the query or searching for records.
+    """
     try:
-        with open(args.tozny_client_credentials_filepath, 'r') as f:
-            client_info = json.load(f)
-    # handle any potential errors
-    except (IOError, json.JSONDecodeError) as e:
-        print('Error loading client credentials from file:', e)
-        exit(1)
+        # create a search query to find records with the specified round number
+        query = Search().match(condition="AND", record_types=[
+            "rps-move"], values=[round_number])
+    except Exception as e:
+        raise RuntimeError("Error creating existing records query: %s" % e)
+    try:
+        # search for records using the created query
+        return client.search(query)
+    except Exception as e:
+        raise RuntimeError("Error searching for existing records for round %s: %s" % (round_number, e))
 
-    # pass credientials into the configuration constructor
-    config = e3db.Config(
-        client_info["client_id"],
-        client_info["api_key_id"],
-        client_info["api_secret"],
-        client_info["public_key"],
-        client_info["private_key"]
-    )
 
-    # pass the configuration when building a new client instance.
-    client = e3db.Client(config())
+def write_record(client, round_number, name, move, client_id):
+    """
+    Write a record to the database.
 
-    # create record to be encypted and stored onto the Tozny database
+    Args:
+        client: A e3db.Client instance.
+        round_number: The round number of the record.
+        name: The name of the player.
+        move: The move made by the player.
+        client_id: The client ID of the player.
+
+    Returns:
+        The written e3db.Record object.
+
+    Raises:
+        RuntimeError: If there was an error writing the record to the database.
+    """
     record_type = 'rps-move'
     data = {
-        'player': args.name,
-        'client_id': client_info["client_id"],
-        'move': args.move
+        'player': name,
+        'client_id': client_id,
+        'move': move
     }
-
     # create unencrypted metadata label specifying round number
     metadata = {
-        'round-number': args.round
+        'round-number': round_number
     }
+    try:
+        # write the record to the database
+        return client.write(record_type, data, metadata)
+    except Exception as e:
+        raise RuntimeError("Error writing record to database: %s" % e)
+
+
+def share_record(client, record_type, client_id):
+    """
+    Share a record with the specified client.
+
+    Args:
+        client: A e3db.Client instance.
+        record_type: The type of the record to share.
+        client_id: The client ID of the recipient.
+
+    Raises:
+        RuntimeError: If there was an error sharing the record.
+    """
+    try:
+        # share the record with the specified client
+        client.share(record_type, client_id)
+    except Exception as e:
+        raise RuntimeError("Error sharing record with Judge: %s" % e)
+
+
+def main():
+
+    # parse the command line arguments
+    args = parse_args()
+
+    # use the hardcoded judge client ID if the optional argument was not provided
+    with open('judge-client-id.json', 'r') as f:
+        config = json.load(f)
+    judge_client_id = args.judge_id or config['judge_client_id']
+
+    # try to load the Tozny client credentials from the file
+    client_info = load_client_credentials(
+        args.tozny_client_credentials_filepath)
+
+    # pass credientials into the configuration constructor
+    client = create_client(client_info)
 
     # check if there is already a move submitted for this round
-    try:
-        existing_records_query = Search().match(condition="AND", record_types=[
-        "rps-move"], values=[args.round])
-    except Exception as e:
-        print("Error creating existing records query:", e)
-        exit(1)
-
-    try:
-        existing_records = client.search(existing_records_query)
-    except Exception as e:
-        print("Error searching for existing record:", e)
-        exit(1)
-
+    existing_records = get_existing_records(client, args.round)
     if len(existing_records) > 0:
         # there is already a move submitted for this round
-        print('Error: A move has already been submitted for round %s' % args.round)
-        exit(1)
-    else:
-        # try to write the record onto the Tozny database
-        try:
-            record = client.write(record_type, data, metadata)
-            print('Successfully saved move for round %s' % args.round)
-            print('Wrote record {0}'.format(record.meta.record_id))
-        # handle any potential errors
-        except Exception as e:
-            print('Error writing record to database:', e)
-            exit(1)
+        raise RuntimeError(
+            'A move has already been submitted for round %s' % args.round)
+
+    # try to write the record onto the Tozny database
+    record = write_record(client, args.round, args.name,
+                          args.move, client_info["client_id"])
+    print('Successfully saved move for round %s' % args.round)
+    print('Wrote record %s' % record.meta.record_id)
 
     # try to share the records with the specified client ID
-    try:
-        client.share('rps-move', judge_client_id)
-    # handle any potential errors
-    except Exception as e:
-        print('Error sharing record with Judge:', e)
-        exit(1)
+    share_record(client, 'rps-move', judge_client_id)
 
 
 if __name__ == '__main__':

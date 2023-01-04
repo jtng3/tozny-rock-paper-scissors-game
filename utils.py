@@ -1,6 +1,8 @@
 import argparse
+import json
 import os
 import uuid
+import e3db
 
 def valid_move(move):
     """
@@ -88,4 +90,47 @@ def valid_client_id(client_id):
         raise argparse.ArgumentTypeError('Invalid client ID: %s' % client_id)
     # return the client ID if it is valid
     return client_id
+
+def load_client_credentials(filepath):
+    """
+    Load client credentials from a file.
+
+    Args:
+        filepath: The file path to the client credentials.
+
+    Returns:
+        A dictionary containing the client credentials.
+
+    Raises:
+        RuntimeError: If there was an error loading the client credentials from the file.
+    """
+    # try to load the client credentials from the file
+    try:
+        with open(filepath, 'r') as f:
+            client_info = json.load(f)
+    # handle any potential errors
+    except (IOError, json.JSONDecodeError) as e:
+        raise RuntimeError('Error loading client credentials from file: %s' % e)
+    return client_info
+
+def create_client(client_info):
+    """
+    Create a e3db.Client instance.
+
+    Args:
+        client_info: A dictionary containing the client credentials.
+
+    Returns:
+        A e3db.Client instance.
+    """
+    # create a Config instance using the client credentials
+    config = e3db.Config(
+        client_info["client_id"],
+        client_info["api_key_id"],
+        client_info["api_secret"],
+        client_info["public_key"],
+        client_info["private_key"]
+    )
+    # return a new Client instance using the Config instance
+    return e3db.Client(config())
 
