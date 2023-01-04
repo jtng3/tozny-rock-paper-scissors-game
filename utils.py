@@ -4,6 +4,7 @@ import os
 import uuid
 import e3db
 
+
 def valid_move(move):
     """
     Check if the move is a valid move.
@@ -91,6 +92,7 @@ def valid_client_id(client_id):
     # return the client ID if it is valid
     return client_id
 
+
 def load_client_credentials(filepath):
     """
     Load client credentials from a file.
@@ -110,8 +112,10 @@ def load_client_credentials(filepath):
             client_info = json.load(f)
     # handle any potential errors
     except (IOError, json.JSONDecodeError) as e:
-        raise RuntimeError('Error loading client credentials from file: %s' % e)
+        raise RuntimeError(
+            'Error loading client credentials from file: %s' % e)
     return client_info
+
 
 def create_client(client_info):
     """
@@ -133,4 +137,3 @@ def create_client(client_info):
     )
     # return a new Client instance using the Config instance
     return e3db.Client(config())
-

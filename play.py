@@ -56,7 +56,8 @@ def get_existing_records(client, round_number):
         # search for records using the created query
         return client.search(query)
     except Exception as e:
-        raise RuntimeError("Error searching for existing records for round %s: %s" % (round_number, e))
+        raise RuntimeError(
+            "Error searching for existing records for round %s: %s" % (round_number, e))
 
 
 def write_record(client, round_number, name, move, client_id):
@@ -122,11 +123,12 @@ def main():
         config = json.load(f)
     judge_client_id = args.judge_id or config['judge_client_id']
 
-    # try to load the Tozny client credentials from the file
+    # load the Tozny client credentials from the file
     client_info = load_client_credentials(
         args.tozny_client_credentials_filepath)
 
     # pass credientials into the configuration constructor
+    # create a client instance
     client = create_client(client_info)
 
     # check if there is already a move submitted for this round
@@ -136,13 +138,13 @@ def main():
         raise RuntimeError(
             'A move has already been submitted for round %s' % args.round)
 
-    # try to write the record onto the Tozny database
+    # write the record onto the Tozny database
     record = write_record(client, args.round, args.name,
                           args.move, client_info["client_id"])
     print('Successfully saved move for round %s' % args.round)
     print('Wrote record %s' % record.meta.record_id)
 
-    # try to share the records with the specified client ID
+    # share the records with the specified client ID
     share_record(client, 'rps-move', judge_client_id)
 
 
