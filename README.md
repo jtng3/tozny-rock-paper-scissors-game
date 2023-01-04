@@ -87,22 +87,23 @@ This program will be used by the players to submit their game moves.
 - `name`: the player's name (either "Alicia" or "Bruce")
 - `move`: the player's move (either "rock", "paper", or "scissors")
 - `tozny_client_credentials_filepath`: the file path to the player's Tozny client credentials
-- `judge_client_id`: the client ID of Judge Clarence (hardcoded in, but may also be available as a modifiable argument)
+- `judge_client_id`: the client ID of Judge Clarence (hardcoded in using a `config.json` file, but also available as an optional argument)
 
 #### Outputs
 
 `play.py` will share the following records with Judge Clarence:
 
-An encrypted version of the player's move, including the player's client ID. The record's metadata will include the record type (RPS Game Move), and the round number.  
+An encrypted version of the player's move, including the player's client ID. The record's metadata will include the record type `rps-move`, and the round number.  
 
 #### Algorithm
 
 1. Load the Tozny client credentials from the file specified by `tozny_client_credentials_filepath`.
 2. Initialize the Tozny client with the client credentials.
+3. Check to see if a move has already been recorded for the specified round.
 3. Encrypt the player's move.
 4. Share the encrypted move along with the player's client ID with Judge Clarence using the `client.share()` function and Judge Clarence's client ID.
 
-Note: The client ID of Judge Clarence will be hardcoded in the program, but it may be also available as a modifiable argument for flexibility.
+Note: The client ID of Judge Clarence will be hardcoded in the program, but it will be also available as a modifiable argument for flexibility.
 
 ### Program 2: winner.py
 
@@ -142,13 +143,14 @@ This program will be used by Judge Clarence to read the moves for a round, deter
 #### Outputs
 `judge.py` will write the following record to the Tozny database and share it with both players:
 
-An encrypted version of the winner of the round. The record's metadata will include the record type (`rps-result`), and the round number.  
+An encrypted version of the winner of the round. The record's metadata will include the record type `rps-result`, and the round number.  
 
 #### Algorithm
 1. Load the Tozny client credentials from the file specified by `tozny_client_credentials_filepath`.
 2. Initialize the Tozny client with the client credentials.
-4. Query the Tozny database for the encrypted moves that have been shared with Judge Clarence using the specified round number and the record type `rps-move`.
-5. Decrypt the moves using the Judge's private key.
+3. Query the Tozny database for the encrypted moves that have been shared with Judge Clarence using the specified round number and the record type `rps-move`.
+4. Decrypt the moves using the Judge's private key.
+5. Make sure that there are only two moves from two unique players for the specified round.
 6. Determine the winner of the round based on the moves.
 7. Encrypt the result of the game using Judge Clarence's credentials.
 8. Share the encrypted result of the game with both players using the `client.share()` function and the players' client IDs, which are included in the bundled moves.
@@ -160,6 +162,5 @@ Round “1” Judged!
 ```
 
 ## Questions to consider
-What should happen if a move has already been submitted for the specified round number entered in the CLI command? Should the game moves be overwritten, or should an error message be displayed? (This can be handled by querying the database for an existing move for that round before writing a new move to the database.)
-What if a player other than Alice or Bruce submits a move for a round that Alice and Bruce are playing?
-
+What should happen if a move has already been submitted for the specified round number entered in the CLI command? Should the game moves be overwritten, or should an error message be displayed? (This is now handled by querying the database for an existing move for that round before writing a new move to the database.)
+What if a player other than Alice or Bruce submits a move for a round that Alice and Bruce are playing? 
