@@ -135,7 +135,7 @@ def parse_args_for_gameplay():
 
     # add an optional judge client ID argument
     parser.add_argument('--judge_id', type=valid_client_id,
-                        help='the client ID of Judge Clarence')
+                        help='the client ID of the Judge')
 
     # parse the command line arguments
     return parser.parse_args()
@@ -202,4 +202,4 @@ def share_record_type(client, record_type, client_id):
         # share the record with the specified client
         client.share(record_type, client_id)
     except Exception as e:
-        raise RuntimeError("Error sharing record with Judge: %s" % e)
+        raise RuntimeError("Error sharing record: %s" % e)
