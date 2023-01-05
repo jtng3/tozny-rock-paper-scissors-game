@@ -41,6 +41,7 @@ def get_player_moves(client, round_number):
     Returns:
         tuple: the player 1 move data and player 2 move data as dictionaries
 
+    Raises:
        Exception: if there are not exactly two game moves for the given round, 
                   or if the client IDs are the same
     """
